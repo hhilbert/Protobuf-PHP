@@ -10,6 +10,7 @@ class CommentsParser
     /** @var array - Define tokenizer regular expressions */
     protected $tokens = array(
         'comment' => '/\*([\S\s]+?)\*/',
+        'line_comment' => '.*//(.*)[\r\n]',
         'package' => 'package\s+([A-Z0-9_]+)',
         'struct'  => '(?:message|enum|service)\s+([A-Z0-9_]+)',
         'close'   => '}',
@@ -50,10 +51,11 @@ class CommentsParser
         $offset = 0;
         while (preg_match($this->regexp, $src, $m, PREG_OFFSET_CAPTURE, $offset)) {
             foreach ($this->tokens as $k=>$v) {
+                $a = array_pop($m);
                 if (!empty($m[$k]) && 0 < strlen($m[$k][0])) {
                     $tokens[] = array(
                         'token' => $k,
-                        'value' => array_shift(array_pop($m)),
+                        'value' => array_shift($a),
                     );
                 }
             }
@@ -64,7 +66,7 @@ class CommentsParser
         $comment = null;
         $stack = array();
         foreach ($tokens as $token) {
-            if ($token['token'] === 'comment') {
+            if ($token['token'] === 'comment' || $token['token'] === 'line_comment') {
                 $comment = $token['value'];
             } elseif ($token['token'] === 'package') {
                 $stack[] = $token['value'];
