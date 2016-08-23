@@ -231,6 +231,27 @@ class Native extends Protobuf\CodecAbstract
         }
     }
 
+    protected function encodeUnknown($writer, $wire, $data)
+    {
+        switch ($wire) {
+            case self::WIRE_VARINT:
+                $type = Protobuf\Protobuf::TYPE_INT64;
+                break;
+            case self::WIRE_LENGTH:
+                $type = Protobuf\Protobuf::TYPE_STRING;
+                break;
+            case self::WIRE_FIXED32:
+                $type = Protobuf\Protobuf::TYPE_FIXED32;
+                break;
+            case self::WIRE_FIXED64:
+                $type = Protobuf\Protobuf::TYPE_FIXED64;
+                break;
+            default:
+                throw new \RuntimeException('Unsupported wire type (' . $wire . ') while consuming unknown field');
+        }
+        $this->encodeSimpleType($writer, $type, $data);
+    }
+
     protected function assertWireType($wire, $type)
     {
         $expected = $this->getWireType($type, $wire);
@@ -406,6 +427,17 @@ class Native extends Protobuf\CodecAbstract
                 $data = $this->encodeMessage($value);
                 $writer->varint(mb_strlen($data, '8bit'));
                 $writer->write($data);
+            }
+        }
+
+        /** @var Unknown[] $unknownData */
+        $unknownData = $message->getUnknown();
+        if ($unknownData)
+        {
+            foreach ($unknownData as $unknown)
+            {
+                $writer->varint($unknown->tag << 3 | $unknown->type);
+                $this->encodeUnknown($writer, $unknown->type, $unknown->data);
             }
         }
 
