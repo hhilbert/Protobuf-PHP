@@ -49,6 +49,7 @@ namespace <?php echo $this->ns($namespace)?> {
             $f->name   = "<?php echo $this->fieldname($f)?>";
             $f->rule   = \DrSlump\Protobuf\Protobuf::RULE_<?php echo strtoupper($this->rule($f))?>;
             $f->type   = \DrSlump\Protobuf\Protobuf::TYPE_<?php echo strtoupper($this->type($f))?>;
+            $f->packed = <?php echo (($f->hasOptions() && $f->getOptions()->getPacked()) ? 'true' : 'false');?>;
             <?php if (!empty($f->type_name)):
                 $ref = $f->type_name;
                 if (substr($ref, 0, 1) !== '.') {

@@ -329,11 +329,6 @@ class Message implements MessageInterface
             return isset($this->_values[$name]);
         }
 
-        $field = $this->_descriptor->getFieldByName($name);
-        if ($field && $field->hasDefault()) {
-            return $field->getDefault() !== NULL;
-        }
-
         return false;
     }
 

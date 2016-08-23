@@ -266,7 +266,7 @@ class NativeWriter
      */
     public function fixed64($value)
     {
-        $bytes = pack('V*', $value & 0xffffffff, $value / (0xffffffff+1));
+        $bytes = pack('P*', $value);
         $this->write($bytes, 8);
     }
 

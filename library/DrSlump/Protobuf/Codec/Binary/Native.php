@@ -138,25 +138,28 @@ class Native extends Protobuf\CodecAbstract
                 if ($type === Protobuf\Protobuf::TYPE_MESSAGE) {
                     $len = $reader->varint();
 
-                    // Protect against completely empty nested messages
+                    // there is a difference between an empty object and null                        
                     if (!$len) {
-                        continue;
-                    }
-
-                    if ($lazy && $field->isRepeated()) {
-                        $repeated[$tag][] = $reader->read($len);
-                        continue;
-                    }
-
-                    if ($lazy) {
-                        $value = new Protobuf\LazyValue();
-                        $value->codec = $this;
-                        $value->descriptor = $field;
-                        $value->value = $reader->read($len);
-                    } else {
                         $submessage = $field->getReference();
-                        $submessage = new $submessage;
-                        $value = $this->decodeMessage($reader, $submessage, $len);
+                        $value =  new $submessage;
+                    }
+                    else
+                    {
+                        if ($lazy && $field->isRepeated()) {
+                            $repeated[$tag][] = $reader->read($len);
+                            continue;
+                        }
+
+                        if ($lazy) {
+                            $value = new Protobuf\LazyValue();
+                            $value->codec = $this;
+                            $value->descriptor = $field;
+                            $value->value = $reader->read($len);
+                        } else {
+                            $submessage = $field->getReference();
+                            $submessage = new $submessage;
+                            $value = $this->decodeMessage($reader, $submessage, $len);
+                        }
                     }
                 } else {
                     $value = $this->decodeSimpleType($reader, $type, $wire);
@@ -226,6 +229,27 @@ class Native extends Protobuf\CodecAbstract
             default:
                 throw new \RuntimeException('Unsupported wire type (' . $wire . ') while consuming unknown field');
         }
+    }
+
+    protected function encodeUnknown($writer, $wire, $data)
+    {
+        switch ($wire) {
+            case self::WIRE_VARINT:
+                $type = Protobuf\Protobuf::TYPE_INT64;
+                break;
+            case self::WIRE_LENGTH:
+                $type = Protobuf\Protobuf::TYPE_STRING;
+                break;
+            case self::WIRE_FIXED32:
+                $type = Protobuf\Protobuf::TYPE_FIXED32;
+                break;
+            case self::WIRE_FIXED64:
+                $type = Protobuf\Protobuf::TYPE_FIXED64;
+                break;
+            default:
+                throw new \RuntimeException('Unsupported wire type (' . $wire . ') while consuming unknown field');
+        }
+        $this->encodeSimpleType($writer, $type, $data);
     }
 
     protected function assertWireType($wire, $type)
@@ -348,8 +372,15 @@ class Native extends Protobuf\CodecAbstract
                 );
             }
 
-            // Skip unknown fields
-            if ($empty && !$field->hasDefault()) {
+            // skip not set values
+            if ($empty) {
+                continue;
+            }
+            
+            $value = $message[$tag];
+            
+            // don't send nulls or defaults over the wire
+            if (NULL === $value || ($field->hasDefault() && $field->getDefault() === $value)) {
                 continue;
             }
 
@@ -358,12 +389,6 @@ class Native extends Protobuf\CodecAbstract
 
             // Compute key with tag number and wire type
             $key = $tag << 3 | $wire;
-
-            $value = $message[$tag];
-
-            if (NULL === $value) {
-                continue;
-            }
 
             if ($field->isRepeated()) {
 
@@ -402,6 +427,17 @@ class Native extends Protobuf\CodecAbstract
                 $data = $this->encodeMessage($value);
                 $writer->varint(mb_strlen($data, '8bit'));
                 $writer->write($data);
+            }
+        }
+
+        /** @var Unknown[] $unknownData */
+        $unknownData = $message->getUnknown();
+        if ($unknownData)
+        {
+            foreach ($unknownData as $unknown)
+            {
+                $writer->varint($unknown->tag << 3 | $unknown->type);
+                $this->encodeUnknown($writer, $unknown->type, $unknown->data);
             }
         }
 
