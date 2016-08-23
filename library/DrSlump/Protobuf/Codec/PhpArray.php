@@ -49,7 +49,7 @@ class PhpArray extends Protobuf\CodecAbstract
         $strict = $this->getOption('strict');
         $useTagNumber = $this->getOption('tags');
 
-        $data = array();
+        $data = new \stdClass();
         foreach ($descriptor->getFields() as $tag=>$field) {
 
             $empty = !isset($message[$tag]);
@@ -92,7 +92,7 @@ class PhpArray extends Protobuf\CodecAbstract
                 $value = $this->filterValue($v, $field);
             }
 
-            $data[$key] = $value;
+            $data->{$key} = $value;
         }
 
         return $data;
