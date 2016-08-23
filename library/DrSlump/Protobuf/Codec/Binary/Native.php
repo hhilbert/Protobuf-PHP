@@ -351,8 +351,15 @@ class Native extends Protobuf\CodecAbstract
                 );
             }
 
-            // Skip unknown fields
-            if ($empty && !$field->hasDefault()) {
+            // skip not set values
+            if ($empty) {
+                continue;
+            }
+            
+            $value = $message[$tag];
+            
+            // don't send nulls or defaults over the wire
+            if (NULL === $value || ($field->hasDefault() && $field->getDefault() === $value)) {
                 continue;
             }
 
@@ -361,12 +368,6 @@ class Native extends Protobuf\CodecAbstract
 
             // Compute key with tag number and wire type
             $key = $tag << 3 | $wire;
-
-            $value = $message[$tag];
-
-            if (NULL === $value) {
-                continue;
-            }
 
             if ($field->isRepeated()) {
 

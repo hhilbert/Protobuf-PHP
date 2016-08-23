@@ -50,17 +50,20 @@ class TextFormat extends Protobuf\CodecAbstract
                     'Message ' . $descriptor->getName() . '\'s field tag ' . $tag . '(' . $field->getName() . ') is required but has no value'
                 );
             }
+            
+            // skip not set values
+            if ($empty) {
+                continue;
+            }
 
-            if ($empty && !$field->hasDefault()) {
+            $value = $message[$tag];
+
+            // don't send nulls or defaults over the wire
+            if (NULL === $value || ($field->hasDefault() && $field->getDefault() === $value)) {
                 continue;
             }
 
             $name = $field->getName();
-            $value = $message[$tag];
-
-            if ($value === NULL) {
-                continue;
-            }
 
             if ($field->isRepeated()) {
                 foreach ($value as $val) {

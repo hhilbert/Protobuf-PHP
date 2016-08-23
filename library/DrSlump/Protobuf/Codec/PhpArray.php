@@ -59,18 +59,21 @@ class PhpArray extends Protobuf\CodecAbstract
                     'Message ' . get_class($message) . '\'s field tag ' . $tag . '(' . $field->getName() . ') is required but has no value'
                 );
             }
+            
+            // skip not set values
+            if ($empty) {
+                continue;
+            }
 
-            if ($empty && !$field->hasDefault()) {
+            $v = $message[$tag];
+
+            // don't send nulls or defaults over the wire
+            if (NULL === $v || ($field->hasDefault() && $field->getDefault() === $v)) {
                 continue;
             }
 
             $key = $useTagNumber ? $field->getNumber() : $field->getName();
-            $v = $message[$tag];
-
-            if (NULL === $v) {
-                continue;
-            }
-
+            
             if ($field->isRepeated()) {
                 // Make sure the value is iterable
                 if (!is_array($v) && !($v instanceof \Traversable)) {
