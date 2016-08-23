@@ -138,25 +138,28 @@ class Native extends Protobuf\CodecAbstract
                 if ($type === Protobuf\Protobuf::TYPE_MESSAGE) {
                     $len = $reader->varint();
 
-                    // Protect against completely empty nested messages
+                    // there is a difference between an empty object and null                        
                     if (!$len) {
-                        continue;
-                    }
-
-                    if ($lazy && $field->isRepeated()) {
-                        $repeated[$tag][] = $reader->read($len);
-                        continue;
-                    }
-
-                    if ($lazy) {
-                        $value = new Protobuf\LazyValue();
-                        $value->codec = $this;
-                        $value->descriptor = $field;
-                        $value->value = $reader->read($len);
-                    } else {
                         $submessage = $field->getReference();
-                        $submessage = new $submessage;
-                        $value = $this->decodeMessage($reader, $submessage, $len);
+                        $value =  new $submessage;
+                    }
+                    else
+                    {
+                        if ($lazy && $field->isRepeated()) {
+                            $repeated[$tag][] = $reader->read($len);
+                            continue;
+                        }
+
+                        if ($lazy) {
+                            $value = new Protobuf\LazyValue();
+                            $value->codec = $this;
+                            $value->descriptor = $field;
+                            $value->value = $reader->read($len);
+                        } else {
+                            $submessage = $field->getReference();
+                            $submessage = new $submessage;
+                            $value = $this->decodeMessage($reader, $submessage, $len);
+                        }
                     }
                 } else {
                     $value = $this->decodeSimpleType($reader, $type, $wire);
