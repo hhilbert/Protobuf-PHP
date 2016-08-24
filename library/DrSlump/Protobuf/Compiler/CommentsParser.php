@@ -10,7 +10,7 @@ class CommentsParser
     /** @var array - Define tokenizer regular expressions */
     protected $tokens = array(
         'comment' => '/\*([\S\s]+?)\*/',
-        'line_comment' => '.*//(.*)[\r\n]',
+        'line_comment' => '.*// (.*)[\r\n]',
         'package' => 'package\s+([A-Z0-9_\.]+)',
         'struct'  => '(?:message|enum|service)\s+([A-Z0-9_]+)',
         'close'   => '}',
