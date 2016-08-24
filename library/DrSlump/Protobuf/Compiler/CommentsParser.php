@@ -10,7 +10,8 @@ class CommentsParser
     /** @var array - Define tokenizer regular expressions */
     protected $tokens = array(
         'comment' => '/\*([\S\s]+?)\*/',
-        'package' => 'package\s+([A-Z0-9_]+)',
+        'line_comment' => '.*// (.*)[\r\n]',
+        'package' => 'package\s+([A-Z0-9_\.]+)',
         'struct'  => '(?:message|enum|service)\s+([A-Z0-9_]+)',
         'close'   => '}',
         'field'   => '(?:required|optional|repeated)\s+[^=]+=\s*([0-9]+)[^;]*;',
@@ -49,23 +50,25 @@ class CommentsParser
         $tokens = array();
         $offset = 0;
         while (preg_match($this->regexp, $src, $m, PREG_OFFSET_CAPTURE, $offset)) {
+            $a = array_pop($m);
             foreach ($this->tokens as $k=>$v) {
                 if (!empty($m[$k]) && 0 < strlen($m[$k][0])) {
                     $tokens[] = array(
                         'token' => $k,
-                        'value' => array_shift(array_pop($m)),
+                        'value' => $a[0],
                     );
+                    $offset = $a[1] + strlen($a[0]);
+                    break;
                 }
             }
-            $offset = $m[0][1] + strlen($m[0][0]);
         }
 
         // Parse the tokens stream to assign comments
         $comment = null;
         $stack = array();
         foreach ($tokens as $token) {
-            if ($token['token'] === 'comment') {
-                $comment = $token['value'];
+            if ($token['token'] === 'comment' || $token['token'] === 'line_comment') {
+                $comment = $comment ? $comment . PHP_EOL . $token['value'] : $token['value'];
             } elseif ($token['token'] === 'package') {
                 $stack[] = $token['value'];
                 $comment = null;
@@ -102,7 +105,7 @@ class CommentsParser
     public function setComment($ident, $comment)
     {
         $comment = str_replace("\r\n", "\n", $comment);
-        $comment = preg_replace('/^[\s\*]+/m', '', $comment);
+        $comment = preg_replace('/\n.*\*/m', PHP_EOL, $comment);
         $comment = trim($comment, "* \n");
         $this->comments[$ident] = $comment;
     }

@@ -1,0 +1,25 @@
+package test.message;
+
+// test -
+// message
+message TestMessage {
+	// one line comment
+	optional int32   field_1 = 1;
+
+	// two line 
+	//  comments
+	optional int32   field_2 = 2;
+
+	/**
+	 * multi line comment
+	 *    with
+	 * multi lines
+     */
+	optional int32   field_3 = 3;
+
+	/* single multi line comment */
+	optional int32   field_4 = 4;
+}
+
+
+
