@@ -11,7 +11,7 @@ class CommentsParser
     protected $tokens = array(
         'comment' => '/\*([\S\s]+?)\*/',
         'line_comment' => '.*//(.*)[\r\n]',
-        'package' => 'package\s+([A-Z0-9_]+)',
+        'package' => 'package\s+([A-Z0-9_\.]+)',
         'struct'  => '(?:message|enum|service)\s+([A-Z0-9_]+)',
         'close'   => '}',
         'field'   => '(?:required|optional|repeated)\s+[^=]+=\s*([0-9]+)[^;]*;',

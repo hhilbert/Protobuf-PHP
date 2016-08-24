@@ -14,10 +14,10 @@ class CommentsParserTest extends \PHPUnit_Framework_TestCase {
     {
         $parser = new CommentsParser();
         $parser->parse(file_get_contents(__DIR__ . '/Test.proto'));
-        $this->assertEquals("test -\n message", $parser->getComment('test.TestMessage'));
-        $this->assertEquals("one line comment", $parser->getComment('test.TestMessage.1'));
-        $this->assertEquals("two line \n  comments", $parser->getComment('test.TestMessage.2'));
-        $this->assertEquals("multi line comment\n    with\n multi lines", $parser->getComment('test.TestMessage.3'));
-        $this->assertEquals("single multi line comment", $parser->getComment('test.TestMessage.4'));
+        $this->assertEquals("test -\n message", $parser->getComment('test.message.TestMessage'));
+        $this->assertEquals("one line comment", $parser->getComment('test.message.TestMessage.1'));
+        $this->assertEquals("two line \n  comments", $parser->getComment('test.message.TestMessage.2'));
+        $this->assertEquals("multi line comment\n    with\n multi lines", $parser->getComment('test.message.TestMessage.3'));
+        $this->assertEquals("single multi line comment", $parser->getComment('test.message.TestMessage.4'));
     }
 }
