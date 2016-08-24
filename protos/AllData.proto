@@ -1,0 +1,49 @@
+import 'ReducedData.proto';
+// some other global comment
+package Test.Message;
+option java_package = "com.trivago.message.test";
+option go_package = "message";
+option java_outer_classname = "AllDataProto";
+
+/*
+ * global comment
+ * second line
+ */
+message AllData {
+	optional double   double_value          = 1;
+	// value comment
+	optional float    float_value           = 2;
+
+	/* and also comment */
+	optional int64    int_64_value          = 3;
+	optional uint64   unsigned_int_64_value = 4;
+	optional int32    int_32_value          = 5;
+	optional fixed64  fixed_int_64_value    = 6;
+	optional fixed32  fixed_int_32_value    = 7;
+	optional bool     bool_value            = 8;
+	optional string   string_value          = 9;
+	// deprecated, not implemented
+//	optional group group_value = 10;
+
+	optional Test.Message.Reduced.ReducedData message_value = 11;
+	optional bytes    bytes_value           = 12;
+	optional uint32   unsigned_int_32_value = 13;
+	optional TestEnum enum_value             = 14 [default = ENUM_3];
+	optional sfixed32 signed_fixed_int_32_value = 15;
+	optional sfixed64 signed_fixed_int_64_value = 16;
+	optional sint32   signed_int_32_value   = 17;
+	optional sint64   signed_int_64_value   = 18;
+
+	repeated int32    int_32_repeated_value = 19;
+	repeated int32    int_32_packed_value   = 20 [packed = true];
+	repeated Test.Message.Reduced.ReducedData message_repeated_value = 21;
+}
+
+enum TestEnum {
+	// enum 2
+	ENUM_2 = 2;
+	// enum 3
+	ENUM_3 = 3;
+}
+
+
